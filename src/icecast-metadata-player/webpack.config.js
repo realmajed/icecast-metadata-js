@@ -1,6 +1,11 @@
 import webpack from "webpack";
 import TerserPlugin from "terser-webpack-plugin";
 import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const packageJson = JSON.parse(fs.readFileSync("./package.json"));
 
@@ -30,7 +35,7 @@ export default {
   devtool: "source-map",
   entry: "/src/IcecastMetadataPlayer.js",
   output: {
-    path: new URL("build", import.meta.url).pathname,
+    path: path.resolve(__dirname, "build"),
     filename: `${packageJson.name}-${packageJson.version}.[name].min.js`,
     library: "IcecastMetadataPlayer",
     libraryExport: "default",

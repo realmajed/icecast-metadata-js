@@ -11,20 +11,7 @@ import {
   noOp,
 } from "./global.js";
 
-// test if worker can spawn a worker for (i.e. everything but iOS)
-let canSpawnWorker;
-const spawnWorkerTest = new Worker(
-  URL.createObjectURL(
-    new Blob(["self.onmessage = () => self.postMessage(!!self.Worker)"], {
-      type: "text/javascript",
-    }),
-  ),
-);
-spawnWorkerTest.onmessage = (r) => {
-  canSpawnWorker = r.data;
-  spawnWorkerTest.terminate();
-};
-spawnWorkerTest.postMessage(null);
+// Worker had to go, Discord CSP blocks it.
 
 export default class FrameQueue {
   constructor(icecast, player) {
@@ -131,7 +118,7 @@ export default class FrameQueue {
       this._syncReject = noOp;
       this._syncTimeout = setTimeout(() => {
         this._syncTimeoutReason = `Buffer underrun after syncing for ${currentBuffered.toFixed(
-          2,
+          2
         )} seconds.`;
         this._syncReject(this._syncTimeoutReason);
       }, currentBuffered * 1000);
@@ -166,7 +153,7 @@ export default class FrameQueue {
             event.WARN,
             `Reconnected successfully after ${this._icecast.state}.`,
             "Unable to sync old and new request.",
-            e,
+            e
           );
 
         const syncQueue = this._syncQueue;
@@ -278,7 +265,7 @@ export default class FrameQueue {
           this._icecast[fireEvent](
             event.WARN,
             "Failed to synchronize old and new stream",
-            "Missing `synaudio` dependency.",
+            "Missing `synaudio` dependency."
           );
 
           return;
@@ -298,17 +285,14 @@ export default class FrameQueue {
           initialGranularity,
         });
 
-        this._synAudioResult = await (canSpawnWorker
-          ? synAudio.syncWorkerConcurrent(
-              pcmQueueDecoded,
-              syncQueueDecoded,
-              Math.max(navigator.hardwareConcurrency - 1, 1),
-            )
-          : synAudio.syncWorker(pcmQueueDecoded, syncQueueDecoded));
+        this._synAudioResult = await synAudio.sync(
+          pcmQueueDecoded,
+          syncQueueDecoded
+        );
 
         this._synAudioResult.offsetFromEnd = samplesToDuration(
           pcmQueueDecoded.samplesDecoded - this._synAudioResult.sampleOffset,
-          sampleRate,
+          sampleRate
         ); // total queue samples decoded - sample offset (sampleOffset from end of buffer)
       }
 
@@ -362,7 +346,7 @@ export default class FrameQueue {
         duration += queue[sliceIndex].duration;
 
       return this._icecast[audioContext].decodeAudioData(
-        concatBuffers(queue.slice(sliceIndex).map(({ data }) => data)).buffer,
+        concatBuffers(queue.slice(sliceIndex).map(({ data }) => data)).buffer
       );
     };
 
@@ -380,7 +364,7 @@ export default class FrameQueue {
 
       for (let i = 0; i < decodedAudioData.numberOfChannels; i++)
         decoded.channelData.push(
-          Float32Array.from(decodedAudioData.getChannelData(i)),
+          Float32Array.from(decodedAudioData.getChannelData(i))
         );
 
       return decoded;
